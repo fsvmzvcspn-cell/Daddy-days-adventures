@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Saar's Uitjes" />
+  <meta name="theme-color" content="#F0EDE8" />
+  <title>Saar's Uitjes</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cream:    #F0EDE8;
+      --cream2:   #E8E4DD;
+      --ink:      #1C1A17;
+      --ink2:     #3D3A35;
+      --muted:    #8C8880;
+      --muted2:   #B5B0A8;
+      --border:   rgba(28,26,23,0.10);
+      --border2:  rgba(28,26,23,0.06);
+      --accent:   #C4430A;
+      --accent-bg: rgba(196,67,10,0.08);
+      --green:    #3D6B4A;
+      --safe-top: env(safe-area-inset-top, 44px);
+      --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    body {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      font-size: 12px;
+    }
+
+    /* ─────────────────────────────
+       HEADER
+    ───────────────────────────────*/
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: calc(var(--safe-top) + 6px) 20px 10px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-wordmark {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .header-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: lowercase;
+    }
+    .header-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .surprise-btn {
+      background: var(--ink);
+      border: none;
+      border-radius: 2px;
+      padding: 8px 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: var(--cream);
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .surprise-btn:active { opacity: 0.75; transform: scale(0.97); }
+
+    /* ─────────────────────────────
+       SCROLL CONTENT
+    ───────────────────────────────*/
+    .scroll-root {
+      padding-top: calc(var(--safe-top) + 62px);
+      padding-bottom: calc(var(--safe-bottom) + 68px);
+      min-height: 100dvh;
+      overflow-y: auto;
+    }
+
+    /* ─────────────────────────────
+       SEARCH
+    ───────────────────────────────*/
+    .search-wrap { padding: 16px 20px 12px; }
+    .search-bar {
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--cream);
+    }
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--ink);
+      font-size: 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      flex: 1;
+      letter-spacing: 0.02em;
+    }
+    .search-bar input::placeholder { color: var(--muted2); }
+    .search-icon { color: var(--muted2); flex-shrink: 0; }
+
+    /* ─────────────────────────────
+       FILTER CHIPS  — text-only, no pills
+    ───────────────────────────────*/
+    .filter-scroll {
+      display: flex;
+      gap: 0;
+      padding: 0 20px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .chip {
+      flex-shrink: 0;
+      background: none;
+      border: 1px solid var(--border);
+      border-right: none;
+      padding: 7px 12px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .chip:last-child { border-right: 1px solid var(--border); }
+    .chip.on {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--cream);
+    }
+    .chip.on + .chip { border-left-color: var(--ink); }
+
+    /* ─────────────────────────────
+       SECTION HEADER — editorial style
+    ───────────────────────────────*/
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 20px 20px 10px;
+    }
+    .section-head-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+    .section-head-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: lowercase;
+    }
+
+    /* ─────────────────────────────
+       HERO CARD  — full-width editorial
+    ───────────────────────────────*/
+    .hero-card {
+      margin: 0 20px 8px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hero-card:active { opacity: 0.92; }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(28,26,23,0.82) 0%, rgba(28,26,23,0.1) 55%, transparent 100%);
+    }
+    .hero-info {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 20px 20px 18px;
+      z-index: 1;
+    }
+    .hero-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: lowercase;
+      color: rgba(240,237,232,0.7);
+      margin-bottom: 5px;
+    }
+    .hero-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: #F0EDE8;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: rgba(240,237,232,0.65);
+    }
+    .hero-sep { width: 1px; height: 10px; background: rgba(240,237,232,0.3); }
+    .hero-free { color: #A8D5B5; }
+
+    /* ─────────────────────────────
+       HORIZONTAL CARD RAIL
+    ───────────────────────────────*/
+    .card-rail {
+      display: flex;
+      gap: 12px;
+      padding: 0 20px 4px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+    }
+    .card-rail::-webkit-scrollbar { display: none; }
+
+    .rail-card {
+      flex-shrink: 0;
+      width: 150px;
+      cursor: pointer;
+      scroll-snap-align: start;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+    .rail-card:active { opacity: 0.8; }
+
+    .rail-thumb {
+      width: 150px;
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--cream2);
+      margin-bottom: 10px;
+    }
+    .rail-thumb-img {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .rail-thumb-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(28,26,23,0.6) 0%, transparent 50%);
+    }
+    .rail-thumb .time-badge {
+      position: absolute;
+      bottom: 10px; left: 10px;
+      z-index: 1;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: rgba(240,237,232,0.9);
+    }
+    .rail-thumb .fav-mark {
+      position: absolute;
+      top: 10px; right: 10px;
+      z-index: 1;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .rail-thumb .fav-mark.show { opacity: 1; }
+
+    .rail-card-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rail-card-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-transform: lowercase;
+    }
+
+    /* photo backgrounds */
+    .rail-thumb, .hero-bg, .detail-hero-bg, .surprise-hero-bg {
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* ─────────────────────────────
+       SECTION DIVIDER LINE
+    ───────────────────────────────*/
+    .divider {
+      margin: 20px 20px 0;
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─────────────────────────────
+       VERTICAL LIST (search / fav)
+    ───────────────────────────────*/
+    .list-view { display: none; }
+    .list-view.visible { display: block; }
+
+    .list-item {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      border-bottom: 1px solid var(--border2);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.1s;
+    }
+    .list-item:active { background: var(--cream2); }
+    .list-thumb-wrap {
+      width: 72px;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .list-thumb {
+      width: 100%;
+      height: 72px;
+      background-color: var(--cream2);
+      background-size: cover;
+      background-position: center;
+    }
+    .list-info {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .list-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .list-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .list-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 16px 12px 0;
+    }
+    .list-time {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--ink2);
+    }
+    .list-fav {
+      font-size: 14px;
+      color: var(--muted2);
+      line-height: 1;
+      cursor: pointer;
+    }
+    .list-fav.on { color: var(--accent); }
+
+    /* ─────────────────────────────
+       TAGS
+    ───────────────────────────────*/
+    .itag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      padding: 3px 8px;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      border: 1px solid var(--border);
+    }
+    .itag-ink    { border-color: var(--ink); color: var(--ink); }
+    .itag-muted  { border-color: var(--border); color: var(--muted); }
+    .itag-free   { border-color: var(--green); color: var(--green); }
+    .itag-accent { border-color: var(--accent); color: var(--accent); }
+
+    /* ─────────────────────────────
+       MAP
+    ───────────────────────────────*/
+    .map-container {
+      height: calc(100dvh - 180px);
+      position: relative;
+    }
+    #map { width: 100%; height: 100%; }
+    .map-legend {
+      position: absolute;
+      bottom: 16px; left: 16px;
+      background: var(--cream);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+    .legend-item:last-child { margin-bottom: 0; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─────────────────────────────
+       BOTTOM NAV — editorial tabs
+    ───────────────────────────────*/
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: var(--safe-bottom);
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0 8px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border: none;
+      background: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.10em;
+      text-transform: lowercase;
+      color: var(--muted2);
+      gap: 5px;
+      transition: color 0.15s;
+    }
+    .nav-item.active { color: var(--ink); }
+    .nav-item svg { color: var(--muted2); transition: color 0.15s; }
+    .nav-item.active svg { color: var(--ink); }
+
+    /* ─────────────────────────────
+       MODAL  (bottom sheet)
+    ───────────────────────────────*/
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28,26,23,0.5);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      z-index: 200;
+      display: flex;
+      align-items: flex-end;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--cream);
+      border-top: 1px solid var(--border);
+      width: 100%;
+      max-height: 92dvh;
+      overflow-y: auto;
+      padding: 20px 20px calc(var(--safe-bottom) + 24px);
+    }
+    .modal-handle {
+      width: 32px; height: 3px;
+      background: var(--muted2);
+      border-radius: 2px;
+      margin: 0 auto 24px;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: lowercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+      background: var(--cream);
+      color: var(--ink);
+      border-radius: 0;
+      letter-spacing: 0.02em;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--ink);
+    }
+    .form-input::placeholder { color: var(--muted2); }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .emoji-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+    .emoji-option {
+      width: 42px; height: 42px;
+      border: 1px solid var(--border);
+      background: var(--cream);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.12s;
+      border-radius: 0;
+    }
+    .emoji-option.selected { border-color: var(--ink); background: var(--cream2); }
+
+    .pill-group { display: flex; gap: 0; flex-wrap: wrap; }
+    .pill {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-right: none;
+      background: var(--cream);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.12s;
+      -webkit-tap-highlight-color: transparent;
+      border-radius: 0;
+    }
+    .pill:last-child { border-right: 1px solid var(--border); }
+    .pill.on { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+
+    .btn-primary {
+      width: 100%; padding: 14px;
+      background: var(--ink);
+      border: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: lowercase;
+      color: var(--cream);
+      cursor: pointer; margin-top: 12px;
+      transition: opacity 0.15s;
+      border-radius: 0;
+    }
+    .btn-primary:active { opacity: 0.75; }
+    .btn-secondary {
+      width: 100%; padding: 13px;
+      background: none;
+      border: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: var(--muted);
+      cursor: pointer; margin-top: 8px;
+      border-radius: 0;
+    }
+
+    /* ─────────────────────────────
+       SURPRISE MODAL
+    ───────────────────────────────*/
+    .surprise-hero {
+      overflow: hidden;
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .surprise-hero-bg {
+      position: absolute; inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .surprise-hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(28,26,23,0.88) 20%, rgba(28,26,23,0.05));
+    }
+    .surprise-hero-info {
+      position: relative; z-index: 1;
+      padding: 18px 18px;
+      width: 100%;
+    }
+    .surprise-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: lowercase;
+      color: rgba(240,237,232,0.6);
+      margin-bottom: 4px;
+    }
+    .surprise-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 24px;
+      font-weight: 900;
+      font-style: italic;
+      color: #F0EDE8;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+    .surprise-desc {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      color: var(--ink2);
+      line-height: 1.7;
+      margin: 14px 0;
+    }
+    .surprise-meta {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .surprise-meta-item {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-right: none;
+    }
+    .surprise-meta-item:last-child { border-right: 1px solid var(--border); }
+
+    @keyframes fadeUp {
+      0% { transform: translateY(12px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .surprise-hero { animation: fadeUp 0.3s ease-out; }
+
+    /* ─────────────────────────────
+       DETAIL VIEW
+    ───────────────────────────────*/
+    .detail-overlay {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      z-index: 150;
+      overflow-y: auto;
+    }
+    .detail-overlay.hidden { display: none; }
+    .detail-hero-wrap {
+      height: 300px;
+      position: relative;
+      overflow: hidden;
+    }
+    .detail-hero-bg {
+      position: absolute; inset: 0;
+      background-size: cover;
+      background-position: center;
+    }
+    .detail-hero-bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, var(--cream) 0%, rgba(240,237,232,0.1) 60%);
+    }
+    .detail-hero-back {
+      position: absolute;
+      top: calc(var(--safe-top) + 10px); left: 20px;
+      background: var(--cream);
+      border: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      color: var(--ink);
+      cursor: pointer; z-index: 2;
+      display: flex; align-items: center; gap: 6px;
+      -webkit-tap-highlight-color: transparent;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+    }
+    .detail-content { padding: 0 20px 50px; }
+    .detail-eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: lowercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .detail-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 32px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+    .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 22px; }
+    .detail-desc {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      color: var(--ink2);
+      line-height: 1.8;
+      margin-bottom: 28px;
+      border-left: 2px solid var(--border);
+      padding-left: 14px;
+    }
+    .detail-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      margin-bottom: 28px;
+      border: 1px solid var(--border);
+    }
+    .detail-stat {
+      padding: 16px;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+    .detail-stat:nth-child(2) { border-right: none; }
+    .detail-stat-val {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .detail-stat-key {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.10em;
+      text-transform: lowercase;
+      color: var(--muted);
+    }
+    .detail-section-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: lowercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .notes-field {
+      width: 100%; padding: 12px;
+      border: 1px solid var(--border);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      resize: vertical; min-height: 90px;
+      outline: none;
+      color: var(--ink); background: var(--cream); line-height: 1.6;
+      border-radius: 0;
+    }
+    .notes-field:focus { border-color: var(--ink); }
+    .save-btn {
+      margin-top: 8px; background: none;
+      border: 1px solid var(--border);
+      padding: 9px 16px; color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      cursor: pointer;
+      border-radius: 0;
+    }
+    .action-row { display: flex; gap: 0; margin-top: 24px; }
+    .action-row .btn-primary { margin-top: 0; flex: 1; }
+    .action-row .btn-maps {
+      flex-shrink: 0; width: auto; padding: 14px 18px;
+      background: none; border: 1px solid var(--ink); border-left: none;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 400;
+      letter-spacing: 0.06em; text-transform: lowercase;
+      color: var(--ink); cursor: pointer; white-space: nowrap;
+    }
+    .delete-btn {
+      width: 100%; padding: 12px;
+      background: none; border: 1px solid rgba(196,67,10,0.25);
+      color: var(--accent);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 400;
+      letter-spacing: 0.08em; text-transform: lowercase;
+      cursor: pointer; margin-top: 12px; border-radius: 0;
+    }
+
+    /* ─────────────────────────────
+       FILTER RANGE
+    ───────────────────────────────*/
+    .filter-section-title {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: lowercase;
+      color: var(--muted); margin: 22px 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border2);
+    }
+    .filter-section-title:first-child { margin-top: 0; }
+    .range-row {
+      display: flex; justify-content: space-between;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px; font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--muted); margin-bottom: 10px;
+    }
+    .range-row strong {
+      color: var(--ink); font-weight: 500;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; width: 100%;
+      height: 2px; border-radius: 0;
+      background: var(--border); outline: none; margin-bottom: 4px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--ink); cursor: pointer;
+      border: 3px solid var(--cream);
+      box-shadow: 0 0 0 1px var(--ink);
+    }
+
+    /* ─────────────────────────────
+       EMPTY STATE
+    ───────────────────────────────*/
+    .empty {
+      text-align: center; padding: 60px 40px;
+    }
+    .empty-icon {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--muted2);
+      margin-bottom: 16px;
+      text-transform: lowercase;
+    }
+    .empty h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      font-style: italic;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    .empty p {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px; font-weight: 300;
+      letter-spacing: 0.04em;
+      color: var(--muted); line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- FIXED HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-wordmark">
+      <div class="header-eyebrow">papa & saar</div>
+      <div class="header-title">Uitjes</div>
+    </div>
+    <button class="surprise-btn" onclick="openSurprise()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      verrassing
+    </button>
+  </div>
+</div>
+
+<!-- MAIN SCROLL AREA -->
+<div class="scroll-root" id="scrollRoot">
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <div class="search-bar">
+      <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="zoek een uitje..." id="searchInput" oninput="onSearch()" autocomplete="off" />
+    </div>
+  </div>
+
+  <!-- FILTER CHIPS -->
+  <div class="filter-scroll" id="filterRow">
+    <button class="chip" onclick="openFilterModal()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:4px"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>filter
+    </button>
+    <button class="chip" id="chip-sun"    onclick="toggleWChip('sun',this)">☀ zon</button>
+    <button class="chip" id="chip-cloud"  onclick="toggleWChip('cloud',this)">⛅ bewolkt</button>
+    <button class="chip" id="chip-rain"   onclick="toggleWChip('rain',this)">☂ regen</button>
+    <button class="chip" id="chip-free"   onclick="toggleTChip('gratis',this)">gratis</button>
+    <button class="chip" id="chip-water"  onclick="toggleTChip('water',this)">water</button>
+    <button class="chip" id="chip-buiten" onclick="toggleTChip('buiten',this)">buiten</button>
+    <button class="chip" id="chip-dieren" onclick="toggleTChip('dieren',this)">dieren</button>
+  </div>
+
+  <!-- DYNAMIC CONTENT -->
+  <div id="homeView"></div>
+  <div id="listView" class="list-view"></div>
+  <div id="mapView" style="display:none; padding: 0 20px;">
+    <div class="map-container">
+      <div id="map"></div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#3D6B4A"></div>dichtbij</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#C4430A"></div>10–20 min</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#8C3A1E"></div>20+ min</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    home
+  </button>
+  <button class="nav-item" id="nav-fav" onclick="switchTab('fav')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    favorieten
+  </button>
+  <button class="nav-item" id="nav-map" onclick="switchTab('map')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+    kaart
+  </button>
+  <button class="nav-item" id="nav-add" onclick="openAddModal()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    toevoegen
+  </button>
+</div>
+
+<!-- ─── ADD MODAL ─── -->
+<div class="modal-overlay hidden" id="addModal" onclick="handleOverlay(event,'addModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nieuw uitje</div>
+    <div class="form-group">
+      <label class="form-label">naam</label>
+      <input class="form-input" id="newName" placeholder="bijv. speeltuin posterenk" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">icoon</label>
+      <div class="emoji-picker" id="emojiPicker">
+        <button class="emoji-option selected" onclick="pickEmoji(this,'🌲')">🌲</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🏊')">🏊</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🎡')">🎡</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🦁')">🦁</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🚴')">🚴</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'⛰️')">⛰️</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🎭')">🎭</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🍦')">🍦</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🌊')">🌊</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🏰')">🏰</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🐄')">🐄</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🎠')">🎠</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🐒')">🐒</button>
+        <button class="emoji-option" onclick="pickEmoji(this,'🌄')">🌄</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">reistijd (minuten)</label>
+      <input class="form-input" id="newTime" type="number" placeholder="15" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">vervoer</label>
+      <select class="form-select" id="newTransport">
+        <option value="🚶">🚶 te voet</option>
+        <option value="🚴">🚴 fiets</option>
+        <option value="🚗">🚗 auto</option>
+        <option value="🚌">🚌 bus/ov</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">geschikt bij welk weer?</label>
+      <div class="pill-group" id="newWeatherPicker">
+        <button class="pill on" onclick="togglePill(this)" data-v="sun">☀ zon</button>
+        <button class="pill on" onclick="togglePill(this)" data-v="cloud">⛅ bewolkt</button>
+        <button class="pill" onclick="togglePill(this)" data-v="rain">☂ regen</button>
+        <button class="pill" onclick="togglePill(this)" data-v="wind">💨 wind</button>
+        <button class="pill" onclick="togglePill(this)" data-v="snow">❄ sneeuw</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">type activiteit</label>
+      <div class="pill-group" id="newTypePicker">
+        <button class="pill" onclick="togglePill(this)" data-v="buiten">buiten</button>
+        <button class="pill" onclick="togglePill(this)" data-v="binnen">binnen</button>
+        <button class="pill" onclick="togglePill(this)" data-v="water">water</button>
+        <button class="pill" onclick="togglePill(this)" data-v="dieren">dieren</button>
+        <button class="pill" onclick="togglePill(this)" data-v="sport">sport</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">kosten</label>
+      <div class="pill-group" id="newFreePicker">
+        <button class="pill on" onclick="setFree(true,this)" id="pill-free">gratis</button>
+        <button class="pill" onclick="setFree(false,this)" id="pill-paid">betaald</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">beschrijving</label>
+      <textarea class="form-textarea" id="newDesc" placeholder="wat is er te doen?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">google maps link (optioneel)</label>
+      <input class="form-input" id="newMaps" placeholder="https://maps.google.com/..." />
+    </div>
+    <button class="btn-primary" onclick="saveAdventure()">uitje opslaan</button>
+    <button class="btn-secondary" onclick="closeModal('addModal')">annuleren</button>
+  </div>
+</div>
+
+<!-- ─── FILTER MODAL ─── -->
+<div class="modal-overlay hidden" id="filterModal" onclick="handleOverlay(event,'filterModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Filters</div>
+    <div class="filter-section-title">maximale reistijd</div>
+    <div class="range-row">
+      <span>0 min</span>
+      <span>max <strong id="maxTimeVal">40</strong> min</span>
+    </div>
+    <input type="range" id="maxTimeSlider" min="5" max="60" step="5" value="40"
+           oninput="document.getElementById('maxTimeVal').textContent=this.value; activeFilters.maxTime=+this.value;" />
+    <div class="filter-section-title">weer (voor verrassing)</div>
+    <div class="pill-group" id="surpriseWeatherPicker">
+      <button class="pill on" onclick="toggleSurpWeather(this)" data-w="sun">☀ zon</button>
+      <button class="pill on" onclick="toggleSurpWeather(this)" data-w="cloud">⛅ bewolkt</button>
+      <button class="pill" onclick="toggleSurpWeather(this)" data-w="rain">☂ regen</button>
+      <button class="pill" onclick="toggleSurpWeather(this)" data-w="wind">💨 wind</button>
+    </div>
+    <div class="filter-section-title">vervoer</div>
+    <div class="pill-group" id="transportPicker">
+      <button class="pill on" onclick="togglePill(this)" data-v="🚶">🚶 voet</button>
+      <button class="pill on" onclick="togglePill(this)" data-v="🚴">🚴 fiets</button>
+      <button class="pill on" onclick="togglePill(this)" data-v="🚗">🚗 auto</button>
+    </div>
+    <button class="btn-primary" onclick="applyFilters()">toepassen</button>
+    <button class="btn-secondary" onclick="resetFilters()">reset alles</button>
+  </div>
+</div>
+
+<!-- ─── SURPRISE MODAL ─── -->
+<div class="modal-overlay hidden" id="surpriseModal" onclick="handleOverlay(event,'surpriseModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="surprise-hero" id="surpriseHero">
+      <div class="surprise-hero-bg" id="surpriseHeroBg"></div>
+      <div class="surprise-hero-info">
+        <div class="surprise-eyebrow">vandaag gaan jullie naar</div>
+        <div class="surprise-name" id="surpriseName">–</div>
+      </div>
+    </div>
+    <div class="surprise-desc" id="surpriseDesc"></div>
+    <div class="surprise-meta" id="surpriseMeta"></div>
+    <button class="btn-primary" onclick="rollSurprise()">andere verrassing</button>
+    <button class="btn-secondary" onclick="closeModal('surpriseModal')">sluiten</button>
+  </div>
+</div>
+
+<!-- ─── DETAIL OVERLAY ─── -->
+<div class="detail-overlay hidden" id="detailView">
+  <div id="detailContent"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════
+let adventures = JSON.parse(localStorage.getItem('saar_adventures') || 'null') || [
+  { id:1,  name:"Bussloo",                           photo:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80", time:0,  transport:"🚴", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Op de fiets of wandelen. Eten en drinken bij Withagen of De Enk.",                              mapsLink:"https://maps.google.com/?q=Bussloo+Brummen",                      lat:52.098, lng:6.182, notes:"", fav:false },
+  { id:2,  name:"Landgoed De Poll",                  photo:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80", time:0,  transport:"🚶", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Wandelen door het bos en langs de IJssel. Eten bij De Kribbe of bakkerij Breil.",               mapsLink:"https://maps.google.com/?q=Landgoed+De+Poll+Velp",                lat:52.005, lng:6.044, notes:"", fav:false },
+  { id:3,  name:"Speeltuin Posterenk",               photo:"https://images.unsplash.com/photo-1575783970733-1aaedde1db74?w=600&q=80", time:6,  transport:"🚴", weather:["sun","cloud"],        types:["buiten","sport"],  free:true,  description:"Gezellige speeltuin op fietsafstand.",                                                          mapsLink:"https://maps.google.com/?q=Speeltuin+Posterenk",                  lat:52.015, lng:6.068, notes:"", fav:false },
+  { id:4,  name:"De Schaeijk in Twello",             photo:"https://images.unsplash.com/photo-1551524559-8af4e6624178?w=600&q=80", time:8,  transport:"🚗", weather:["sun"],               types:["water","sport"],   free:false, description:"Zwemmen bij de schaeijk in Twello. Heerlijk op warme dagen!",                                   mapsLink:"https://maps.google.com/?q=Schaeijk+Twello",                      lat:52.233, lng:6.108, notes:"", fav:false },
+  { id:5,  name:"Fietsen naar Gorssel",              photo:"https://images.unsplash.com/photo-1495707902641-75cac588d2e9?w=600&q=80", time:14, transport:"🚴", weather:["sun","cloud"],        types:["buiten"],          free:true,  description:"Fietsen naar Gorssel via het pondje. IJs in Gorssel of bij De Kribbe (vanaf april).",          mapsLink:"https://maps.google.com/?q=Gorssel+via+veerpont",                 lat:52.068, lng:6.215, notes:"", fav:false },
+  { id:6,  name:"Waterwerken Zutphen",               photo:"https://images.unsplash.com/photo-1519046904884-53103b34b206?w=600&q=80", time:14, transport:"🚗", weather:["sun"],               types:["water","sport"],   free:false, description:"Waterpark en eten en drinken bij Lekker aan de IJssel.",                                        mapsLink:"https://maps.google.com/?q=Waterwerken+Zutphen",                  lat:52.148, lng:6.194, notes:"", fav:false },
+  { id:7,  name:"Kinderboerderij de Maten",          photo:"https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=600&q=80", time:15, transport:"🚗", weather:["sun","cloud"],        types:["dieren","buiten"], free:true,  description:"Dieren aaien, spelen op speeltoestellen en koffie voor papa.",                                  mapsLink:"https://maps.google.com/?q=Kinderboerderij+de+Maten+Apeldoorn",   lat:52.218, lng:5.975, notes:"", fav:false },
+  { id:8,  name:"De Scheg in Deventer",              photo:"https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80", time:15, transport:"🚗", weather:["rain","cloud","sun"], types:["water","binnen"],  free:false, description:"Zwemmen bij de Scheg in Deventer. Ook goed bij slecht weer!",                                   mapsLink:"https://maps.google.com/?q=De+Scheg+Deventer",                    lat:52.248, lng:6.157, notes:"", fav:false },
+  { id:9,  name:"Loenens Waterval",                  photo:"https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&q=80", time:15, transport:"🚗", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Wandelen in het bos en langs de beek. Verfrissend!",                                            mapsLink:"https://maps.google.com/?q=Loenens+Waterval",                     lat:52.179, lng:6.055, notes:"", fav:false },
+  { id:10, name:"Loenermark",                        photo:"https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&q=80", time:16, transport:"🚗", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Wandelen in de bossen en heide van de Veluwe.",                                                 mapsLink:"https://maps.google.com/?q=Loenermark+Loenen",                    lat:52.193, lng:6.022, notes:"", fav:false },
+  { id:11, name:"Stadsboerderij Linde",              photo:"https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&q=80", time:18, transport:"🚗", weather:["sun","cloud"],        types:["dieren","buiten"], free:true,  description:"Stadsboerderij met dieren en groente, heerlijk voor een rustig uitje.",                         mapsLink:"https://maps.google.com/?q=Stadsboerderij+Heerlijkheid+Linde",    lat:52.006, lng:6.108, notes:"", fav:false },
+  { id:12, name:"'t Leesten",                        photo:"https://images.unsplash.com/photo-1467173572719-f14b9fb86e5f?w=600&q=80", time:20, transport:"🚗", weather:["sun","cloud","wind"], types:["buiten"],          free:false, description:"Wandelen over de heide en door het bos. Eten en drinken bij Bospaviljoen.",                     mapsLink:"https://maps.google.com/?q=t+Leesten+Zutphen",                    lat:52.117, lng:6.262, notes:"", fav:false },
+  { id:13, name:"Speelboerderij Dondertman",         photo:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", time:22, transport:"🚗", weather:["sun","cloud"],        types:["sport","dieren"],  free:false, description:"Mega speeltuin in Holten! Hele dag fun voor Saar.",                                             mapsLink:"https://maps.google.com/?q=Speelboerderij+Dondertman+Holten",     lat:52.285, lng:6.417, notes:"", fav:false },
+  { id:14, name:"Apenheul",                          photo:"https://images.unsplash.com/photo-1540573133985-87b6da6d54a9?w=600&q=80", time:27, transport:"🚗", weather:["sun","cloud"],        types:["dieren","buiten"], free:false, description:"Aapjes kijken en speeltoestellen. Een dag vol avontuur!",                                       mapsLink:"https://maps.google.com/?q=Apenheul+Apeldoorn",                   lat:52.213, lng:5.964, notes:"", fav:false },
+  { id:15, name:"Bezoekerscentrum Veluwezoom",       photo:"https://images.unsplash.com/photo-1448278853521-e0f4a6a44045?w=600&q=80", time:30, transport:"🚗", weather:["sun","cloud","wind"], types:["dieren","buiten"], free:false, description:"Speeltuin, brasserie en wandelroutes door de Veluwe.",                                         mapsLink:"https://maps.google.com/?q=Bezoekerscentrum+Veluwezoom+Rheden",   lat:52.006, lng:6.039, notes:"", fav:false },
+  { id:16, name:"Sallandse Heuvelrug",               photo:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80", time:35, transport:"🚗", weather:["sun","cloud","wind"], types:["buiten","sport"],  free:true,  description:"Wandelen door het bos met speeltoestellen langs de route.",                                     mapsLink:"https://maps.google.com/?q=Sallandse+Heuvelrug+Nijverdal",        lat:52.371, lng:6.459, notes:"", fav:false },
+];
+
+let nextId = Math.max(...adventures.map(a => a.id)) + 1;
+
+// ── STATE ──
+let currentTab       = 'home';
+let selectedEmoji    = '🌲';
+let newIsFree        = true;
+let surpriseWeathers = ['sun','cloud'];
+let activeFilters    = { weather:[], types:[], maxTime:60 };
+let searchQuery      = '';
+let leafletMap       = null;
+let mapMarkers       = [];
+
+const photoBg     = a => a.photo
+  ? `background-image:url('${a.photo}');background-color:var(--cream2)`
+  : 'background-color:var(--cream2)';
+const weatherIcon = { sun:'☀', cloud:'⛅', rain:'☂', wind:'💨', snow:'❄' };
+const typeLabel   = { buiten:'buiten', binnen:'binnen', water:'water', dieren:'dieren', sport:'sport' };
+
+function save() { localStorage.setItem('saar_adventures', JSON.stringify(adventures)); }
+
+// ═══════════════════════════════════════════════
+//  FILTER HELPERS
+// ═══════════════════════════════════════════════
+function getFiltered() {
+  return adventures.filter(a => {
+    if (searchQuery && !a.name.toLowerCase().includes(searchQuery) && !a.description.toLowerCase().includes(searchQuery)) return false;
+    if (activeFilters.maxTime < 60 && a.time > activeFilters.maxTime) return false;
+    if (activeFilters.weather.length && !activeFilters.weather.some(w => a.weather.includes(w))) return false;
+    if (activeFilters.types.length && !activeFilters.types.some(t => a.types.includes(t))) return false;
+    return true;
+  });
+}
+
+function onSearch() {
+  searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (searchQuery) {
+    document.getElementById('homeView').style.display = 'none';
+    document.getElementById('listView').classList.add('visible');
+    renderListView(getFiltered());
+  } else {
+    document.getElementById('homeView').style.display = '';
+    document.getElementById('listView').classList.remove('visible');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  HOME VIEW
+// ═══════════════════════════════════════════════
+function renderHome() {
+  const filtered = getFiltered();
+  if (filtered.length === 0) {
+    document.getElementById('homeView').innerHTML = `<div class="empty"><div class="empty-icon">— geen resultaten —</div><h3>Niets gevonden</h3><p>pas de filters aan.</p></div>`;
+    return;
+  }
+
+  let html = '';
+
+  // FEATURED HERO
+  const favs = filtered.filter(a => a.fav);
+  const featured = favs.length ? favs[Math.floor(Math.random()*favs.length)] : filtered[0];
+  html += heroCardHTML(featured);
+
+  // SECTION: Snel weg (≤15 min)
+  const nearby = filtered.filter(a => a.time <= 15);
+  if (nearby.length) {
+    html += `<hr class="divider">
+    <div class="section-head">
+      <div class="section-head-title">Snel weg</div>
+      <div class="section-head-sub">≤ 15 min</div>
+    </div>
+    <div class="card-rail">` + nearby.map(a => railCardHTML(a)).join('') + `</div>`;
+  }
+
+  // SECTION: Favorieten
+  if (favs.length) {
+    html += `<hr class="divider">
+    <div class="section-head">
+      <div class="section-head-title">Favorieten</div>
+      <div class="section-head-sub">${favs.length} bewaard</div>
+    </div>
+    <div class="card-rail">` + favs.map(a => railCardHTML(a)).join('') + `</div>`;
+  }
+
+  // SECTION: Buiten
+  const buiten = filtered.filter(a => a.types.includes('buiten'));
+  if (buiten.length) {
+    html += `<hr class="divider">
+    <div class="section-head">
+      <div class="section-head-title">Buiten</div>
+      <div class="section-head-sub">natuur & bos</div>
+    </div>
+    <div class="card-rail">` + buiten.map(a => railCardHTML(a)).join('') + `</div>`;
+  }
+
+  // SECTION: Water
+  const water = filtered.filter(a => a.types.includes('water'));
+  if (water.length) {
+    html += `<hr class="divider">
+    <div class="section-head">
+      <div class="section-head-title">Water</div>
+      <div class="section-head-sub">zwemmen & spetteren</div>
+    </div>
+    <div class="card-rail">` + water.map(a => railCardHTML(a)).join('') + `</div>`;
+  }
+
+  // SECTION: Dieren
+  const dieren = filtered.filter(a => a.types.includes('dieren'));
+  if (dieren.length) {
+    html += `<hr class="divider">
+    <div class="section-head">
+      <div class="section-head-title">Dieren</div>
+      <div class="section-head-sub">boerderij & zoo</div>
+    </div>
+    <div class="card-rail">` + dieren.map(a => railCardHTML(a)).join('') + `</div>`;
+  }
+
+  // SECTION: Alle uitjes
+  const sorted = [...filtered].sort((a,b) => a.time - b.time);
+  html += `<hr class="divider">
+  <div class="section-head">
+    <div class="section-head-title">Alle uitjes</div>
+    <div class="section-head-sub">${sorted.length} stuks</div>
+  </div>
+  <div class="card-rail">` + sorted.map(a => railCardHTML(a)).join('') + `</div>
+  <div style="height:8px"></div>`;
+
+  document.getElementById('homeView').innerHTML = html;
+}
+
+function heroCardHTML(a) {
+  const dist = a.time === 0 ? 'vlakbij' : `${a.transport} ${a.time} min`;
+  return `
+    <div class="hero-card" onclick="openDetail(${a.id})">
+      <div class="hero-bg" style="${photoBg(a)}"></div>
+      <div class="hero-info">
+        <div class="hero-eyebrow">${dist}</div>
+        <div class="hero-name">${a.name}</div>
+        <div class="hero-meta">
+          <span>${a.weather.map(w => weatherIcon[w]).join(' ')}</span>
+          <div class="hero-sep"></div>
+          <span>${a.types.map(t => typeLabel[t]||t).join(' · ')}</span>
+          ${a.free ? `<div class="hero-sep"></div><span class="hero-free">gratis</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function railCardHTML(a) {
+  return `
+    <div class="rail-card" onclick="openDetail(${a.id})">
+      <div class="rail-thumb">
+        <div class="rail-thumb-img" style="${photoBg(a)}"></div>
+        <div class="fav-mark ${a.fav ? 'show' : ''}"></div>
+        <div class="time-badge">${a.time === 0 ? 'vlakbij' : a.time + ' min'}</div>
+      </div>
+      <div class="rail-card-name">${a.name}</div>
+      <div class="rail-card-sub">${a.types.map(t => typeLabel[t]||t).join(' · ')}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  LIST VIEW
+// ═══════════════════════════════════════════════
+function renderListView(list) {
+  if (!list.length) {
+    document.getElementById('listView').innerHTML = `<div class="empty"><div class="empty-icon">— geen resultaten —</div><h3>Niets gevonden</h3><p>pas je zoekopdracht aan.</p></div>`;
+    return;
+  }
+  document.getElementById('listView').innerHTML = list.map(a => listItemHTML(a)).join('');
+}
+
+function listItemHTML(a) {
+  return `
+    <div class="list-item" onclick="openDetail(${a.id})">
+      <div class="list-thumb-wrap">
+        <div class="list-thumb" style="${photoBg(a)}"></div>
+      </div>
+      <div class="list-info">
+        <div class="list-name">${a.name}</div>
+        <div class="list-sub">
+          ${a.weather.map(w => weatherIcon[w]).join('')}
+          <span>·</span>
+          ${a.types.slice(0,2).map(t => typeLabel[t]||t).join(', ')}
+          ${a.free ? '<span style="color:var(--green)">· gratis</span>' : ''}
+        </div>
+      </div>
+      <div class="list-right">
+        <div class="list-time">${a.transport} ${a.time === 0 ? 'nu' : a.time + '′'}</div>
+        <div class="list-fav ${a.fav ? 'on' : ''}" onclick="event.stopPropagation();toggleFav(${a.id})">♥</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-' + tab)?.classList.add('active');
+
+  document.getElementById('searchInput').value = '';
+  searchQuery = '';
+
+  const home = document.getElementById('homeView');
+  const list = document.getElementById('listView');
+  const map  = document.getElementById('mapView');
+
+  home.style.display = 'none';
+  list.classList.remove('visible');
+  map.style.display  = 'none';
+
+  if (tab === 'home') {
+    home.style.display = '';
+    renderHome();
+  } else if (tab === 'fav') {
+    list.classList.add('visible');
+    renderListView(adventures.filter(a => a.fav));
+  } else if (tab === 'map') {
+    map.style.display = 'block';
+    initMap();
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  MAP
+// ═══════════════════════════════════════════════
+function initMap() {
+  if (leafletMap) { updateMapMarkers(); return; }
+  const link = document.createElement('link');
+  link.rel = 'stylesheet'; link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+  document.head.appendChild(link);
+  const script = document.createElement('script');
+  script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+  script.onload = () => {
+    leafletMap = L.map('map', { zoomControl:false }).setView([52.06, 6.12], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution:'© OpenStreetMap © CARTO'
+    }).addTo(leafletMap);
+    updateMapMarkers();
+  };
+  document.head.appendChild(script);
+}
+
+function updateMapMarkers() {
+  if (!leafletMap) return;
+  mapMarkers.forEach(m => m.remove()); mapMarkers = [];
+  adventures.forEach(a => {
+    if (!a.lat || !a.lng) return;
+    const color = a.time <= 10 ? '#3D6B4A' : a.time <= 20 ? '#C4430A' : '#8C3A1E';
+    const icon = L.divIcon({
+      html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2px solid var(--cream);display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.2)">${a.emoji||'📍'}</div>`,
+      className:'', iconSize:[28,28], iconAnchor:[14,14]
+    });
+    mapMarkers.push(L.marker([a.lat, a.lng], {icon}).addTo(leafletMap)
+      .bindPopup(`<b>${a.name}</b><br>${a.transport} ${a.time} min`));
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  DETAIL VIEW
+// ═══════════════════════════════════════════════
+function openDetail(id) {
+  const a = adventures.find(x => x.id === id);
+  if (!a) return;
+
+  const tags = [
+    ...a.weather.map(w => `<span class="itag itag-muted">${weatherIcon[w]} ${w}</span>`),
+    ...a.types.map(t  => `<span class="itag itag-ink">${typeLabel[t]||t}</span>`),
+    a.free ? `<span class="itag itag-free">gratis</span>` : `<span class="itag itag-accent">betaald</span>`
+  ].join('');
+
+  const dist = a.time === 0 ? 'vlakbij' : `${a.time} min`;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div class="detail-hero-wrap">
+      <div class="detail-hero-bg" style="${photoBg(a)}"></div>
+      <button class="detail-hero-back" onclick="closeDetail()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        terug
+      </button>
+    </div>
+    <div class="detail-content">
+      <div class="detail-eyebrow">${dist} · ${a.transport}</div>
+      <div class="detail-name">${a.name}</div>
+      <div class="detail-tags">${tags}</div>
+      ${a.description ? `<div class="detail-desc">${a.description}</div>` : ''}
+      <div class="detail-stats">
+        <div class="detail-stat">
+          <div class="detail-stat-val">${a.transport}</div>
+          <div class="detail-stat-key">vervoer</div>
+        </div>
+        <div class="detail-stat">
+          <div class="detail-stat-val">${a.time === 0 ? '~' : a.time + '′'}</div>
+          <div class="detail-stat-key">${a.time === 0 ? 'vlakbij' : 'reistijd'}</div>
+        </div>
+      </div>
+      <div class="detail-section-title">notities</div>
+      <textarea class="notes-field" id="notesField" placeholder="bijv. saar vond de schommel geweldig…">${a.notes||''}</textarea>
+      <button class="save-btn" onclick="saveNotes(${a.id})">opslaan</button>
+      <div class="action-row">
+        <button class="btn-primary" style="flex:1;margin-top:0" onclick="toggleFav(${a.id}); this.textContent = adventures.find(x=>x.id===${a.id}).fav ? '♥ favoriet' : '♡ favoriet'">
+          ${a.fav ? '♥ favoriet' : '♡ favoriet'}
+        </button>
+        ${a.mapsLink ? `<button class="btn-maps" onclick="window.open('${a.mapsLink}','_blank')">↗ maps</button>` : ''}
+      </div>
+      <button class="delete-btn" onclick="deleteAdventure(${a.id})">verwijderen</button>
+    </div>
+  `;
+  document.getElementById('detailView').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('detailView').classList.add('hidden');
+  document.body.style.overflow = '';
+  if (currentTab === 'home') renderHome();
+  else if (currentTab === 'fav') renderListView(adventures.filter(a => a.fav));
+}
+
+function saveNotes(id) {
+  const a = adventures.find(x => x.id === id); if (!a) return;
+  a.notes = document.getElementById('notesField').value; save();
+  const btn = event.target; btn.textContent = '✓ opgeslagen';
+  setTimeout(() => btn.textContent = 'opslaan', 1500);
+}
+
+function deleteAdventure(id) {
+  if (!confirm('Uitje verwijderen?')) return;
+  adventures = adventures.filter(a => a.id !== id); save(); closeDetail();
+}
+
+function toggleFav(id) {
+  const a = adventures.find(x => x.id === id); if (!a) return;
+  a.fav = !a.fav; save();
+  if (currentTab === 'home') renderHome();
+  else if (currentTab === 'fav') renderListView(adventures.filter(a => a.fav));
+  else if (searchQuery) renderListView(getFiltered());
+}
+
+// ═══════════════════════════════════════════════
+//  SURPRISE
+// ═══════════════════════════════════════════════
+function openSurprise() { openModal('surpriseModal'); rollSurprise(); }
+
+function rollSurprise() {
+  const pool = adventures.filter(a => {
+    if (a.time > activeFilters.maxTime) return false;
+    if (!surpriseWeathers.some(w => a.weather.includes(w))) return false;
+    return true;
+  });
+  if (!pool.length) {
+    document.getElementById('surpriseName').textContent = 'Geen uitje gevonden';
+    document.getElementById('surpriseDesc').textContent = 'Pas de weer-filter aan.';
+    document.getElementById('surpriseMeta').innerHTML = '';
+    document.getElementById('surpriseHeroBg').style.cssText = '';
+    return;
+  }
+  const a = pool[Math.floor(Math.random() * pool.length)];
+  const hero = document.getElementById('surpriseHero');
+  hero.style.animation = 'none';
+  hero.offsetHeight; // reflow
+  hero.style.animation = '';
+  document.getElementById('surpriseHeroBg').style.cssText = photoBg(a);
+  document.getElementById('surpriseName').textContent = a.name;
+  document.getElementById('surpriseDesc').textContent = a.description;
+  document.getElementById('surpriseMeta').innerHTML = [
+    `<div class="surprise-meta-item">${a.transport} ${a.time === 0 ? 'vlakbij' : a.time + ' min'}</div>`,
+    `<div class="surprise-meta-item">${a.weather.map(w=>weatherIcon[w]).join(' ')}</div>`,
+    a.free ? `<div class="surprise-meta-item" style="color:var(--green)">gratis</div>` : ''
+  ].join('');
+}
+
+// ═══════════════════════════════════════════════
+//  CHIP / PILL TOGGLES
+// ═══════════════════════════════════════════════
+function toggleWChip(w, el) {
+  el.classList.toggle('on');
+  if (activeFilters.weather.includes(w)) activeFilters.weather = activeFilters.weather.filter(x=>x!==w);
+  else activeFilters.weather.push(w);
+  if (currentTab === 'home') renderHome(); else onSearch();
+}
+
+function toggleTChip(t, el) {
+  el.classList.toggle('on');
+  if (activeFilters.types.includes(t)) activeFilters.types = activeFilters.types.filter(x=>x!==t);
+  else activeFilters.types.push(t);
+  if (currentTab === 'home') renderHome(); else onSearch();
+}
+
+function toggleSurpWeather(el) {
+  const w = el.dataset.w; el.classList.toggle('on');
+  if (surpriseWeathers.includes(w)) surpriseWeathers = surpriseWeathers.filter(x=>x!==w);
+  else surpriseWeathers.push(w);
+}
+
+function togglePill(el) { el.classList.toggle('on'); }
+
+function setFree(val, el) {
+  newIsFree = val;
+  document.getElementById('pill-free').classList.toggle('on', val);
+  document.getElementById('pill-paid').classList.toggle('on', !val);
+}
+
+// ═══════════════════════════════════════════════
+//  FILTER MODAL
+// ═══════════════════════════════════════════════
+function openFilterModal() { openModal('filterModal'); }
+
+function applyFilters() {
+  activeFilters.maxTime = +document.getElementById('maxTimeSlider').value;
+  closeModal('filterModal');
+  if (currentTab === 'home') renderHome(); else onSearch();
+}
+
+function resetFilters() {
+  activeFilters = { weather:[], types:[], maxTime:60 };
+  surpriseWeathers = ['sun','cloud'];
+  document.getElementById('maxTimeSlider').value = 60;
+  document.getElementById('maxTimeVal').textContent = 60;
+  document.querySelectorAll('#chip-sun,#chip-cloud,#chip-rain,#chip-free,#chip-water,#chip-buiten,#chip-dieren').forEach(c => c.classList.remove('on'));
+  document.querySelectorAll('#surpriseWeatherPicker .pill').forEach(b => b.classList.toggle('on', ['sun','cloud'].includes(b.dataset.w)));
+  closeModal('filterModal');
+  if (currentTab === 'home') renderHome();
+}
+
+// ═══════════════════════════════════════════════
+//  ADD ADVENTURE
+// ═══════════════════════════════════════════════
+function openAddModal() { openModal('addModal'); }
+
+function pickEmoji(el, e) {
+  selectedEmoji = e;
+  document.querySelectorAll('.emoji-option').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveAdventure() {
+  const name = document.getElementById('newName').value.trim();
+  const time = parseInt(document.getElementById('newTime').value) || 0;
+  const transport = document.getElementById('newTransport').value;
+  const description = document.getElementById('newDesc').value.trim();
+  const mapsLink = document.getElementById('newMaps').value.trim();
+  const weathers = [...document.querySelectorAll('#newWeatherPicker .pill.on')].map(b => b.dataset.v);
+  const types    = [...document.querySelectorAll('#newTypePicker .pill.on')].map(b => b.dataset.v);
+
+  if (!name) { alert('Geef het uitje een naam!'); return; }
+
+  adventures.push({ id:nextId++, name, emoji:selectedEmoji, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat:null, lng:null, notes:'', fav:false });
+  save();
+
+  document.getElementById('newName').value = '';
+  document.getElementById('newTime').value = '';
+  document.getElementById('newDesc').value = '';
+  document.getElementById('newMaps').value = '';
+  document.querySelectorAll('#newWeatherPicker .pill').forEach(b => b.classList.toggle('on', ['sun','cloud'].includes(b.dataset.v)));
+  document.querySelectorAll('#newTypePicker .pill').forEach(b => b.classList.remove('on'));
+  newIsFree = true; setFree(true);
+
+  closeModal('addModal');
+  switchTab('home');
+}
+
+// ═══════════════════════════════════════════════
+//  MODAL HELPERS
+// ═══════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); document.body.style.overflow=''; }
+function handleOverlay(e, id) { if (e.target.id === id) closeModal(id); }
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+renderHome();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
