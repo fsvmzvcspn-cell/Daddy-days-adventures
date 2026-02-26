@@ -1233,7 +1233,7 @@ let searchQuery      = '';
 let leafletMap       = null;
 let mapMarkers       = [];
 let editingId        = null;   // null = new, number = editing existing
-let pendingPhotoData = null;   // base64 data URL of uploaded photo
+let pendingPhotoFile = null;   // File object van gekozen foto
 
 const photoBg     = a => a.photo
   ? `background-image:url('${a.photo}');background-color:var(--cream2)`
@@ -1791,7 +1791,7 @@ function resetFilters() {
 // ═══════════════════════════════════════════════
 function openAddModal() {
   editingId = null;
-  pendingPhotoData = null;
+  pendingPhotoFile = null;
   document.getElementById('addModalTitle').textContent = 'Nieuw uitje';
   document.getElementById('addSaveBtn').textContent = 'uitje opslaan';
   document.getElementById('newName').value = '';
@@ -1811,7 +1811,7 @@ function openEditModal(id) {
   const a = adventures.find(x => x.id === id);
   if (!a) return;
   editingId = id;
-  pendingPhotoData = null;
+  pendingPhotoFile = null;
   document.getElementById('addModalTitle').textContent = 'Uitje bewerken';
   document.getElementById('addSaveBtn').textContent = 'wijzigingen opslaan';
   document.getElementById('newName').value = a.name || '';
@@ -1839,13 +1839,32 @@ function openEditModal(id) {
 function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+  pendingPhotoFile = file;
+  // lokale preview
   const reader = new FileReader();
   reader.onload = e => {
-    pendingPhotoData = e.target.result;
-    document.getElementById('photoPreview').style.backgroundImage = `url('${pendingPhotoData}')`;
+    document.getElementById('photoPreview').style.backgroundImage = `url('${e.target.result}')`;
     document.getElementById('photoUploadLabel').textContent = 'foto geselecteerd ✓';
   };
   reader.readAsDataURL(file);
+}
+
+async function uploadPhoto(file, id) {
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = `adventure-${id}.${ext}`;
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/photos/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': file.type,
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  // voeg cache-busting toe zodat nieuwe foto meteen zichtbaar is
+  return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}?t=${Date.now()}`;
 }
 
 async function saveAdventure() {
@@ -1876,13 +1895,15 @@ async function saveAdventure() {
       a.name = name; a.time = time; a.transport = transport;
       a.description = description; a.mapsLink = mapsLink;
       a.weather = weathers; a.types = types; a.free = newIsFree;
-      if (pendingPhotoData) a.photo = pendingPhotoData;
+      if (pendingPhotoFile) a.photo = await uploadPhoto(pendingPhotoFile, a.id);
       if (mapsLink) { a.lat = lat; a.lng = lng; }
       await save(a);
     }
   } else {
-    const photo = pendingPhotoData || null;
-    const newA = { id:nextId++, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat, lng, notes:'', fav:false, photo };
+    const newId = nextId++;
+    let photo = null;
+    if (pendingPhotoFile) photo = await uploadPhoto(pendingPhotoFile, newId);
+    const newA = { id:newId, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat, lng, notes:'', fav:false, photo };
     adventures.push(newA);
     await insertAdventure(newA);
   }
