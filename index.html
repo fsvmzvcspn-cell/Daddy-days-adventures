@@ -1107,8 +1107,8 @@
       </select>
     </div>
     <div class="form-group">
-      <label class="form-label">adres (optioneel, voor op de kaart)</label>
-      <input class="form-input" id="newAddress" placeholder="bijv. Bussloo 1, Brummen" />
+      <label class="form-label">google maps link (optioneel, voor op de kaart)</label>
+      <input class="form-input" id="newMaps" placeholder="https://maps.google.com/..." />
     </div>
     <div class="form-group">
       <label class="form-label">geschikt bij welk weer?</label>
@@ -1140,10 +1140,6 @@
     <div class="form-group">
       <label class="form-label">beschrijving</label>
       <textarea class="form-textarea" id="newDesc" placeholder="wat is er te doen?"></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">google maps link (optioneel)</label>
-      <input class="form-input" id="newMaps" placeholder="https://maps.google.com/..." />
     </div>
     <button class="btn-primary" id="addSaveBtn" onclick="saveAdventure()">uitje opslaan</button>
     <button class="btn-secondary" onclick="closeModal('addModal')">annuleren</button>
@@ -1471,14 +1467,31 @@ function initMap() {
   document.head.appendChild(script);
 }
 
-async function geocodeAddress(address) {
+function coordsFromMapsLink(url) {
+  if (!url) return null;
+  // format: @lat,lng or ?q=lat,lng or ll=lat,lng
+  let m;
+  m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  m = url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (m) return { lat: parseFloat(m[1]), lng: parseFloat(m[2]) };
+  // format: ?q=placename — geocode via Nominatim
+  m = url.match(/[?&]q=([^&]+)/);
+  if (m) return geocodeName(decodeURIComponent(m[1].replace(/\+/g,' ')));
+  // google.com/maps/place/Name/@lat,lng
+  m = url.match(/maps\/place\/([^/]+)\//);
+  if (m) return geocodeName(decodeURIComponent(m[1].replace(/\+/g,' ')));
+  return null;
+}
+
+async function geocodeName(name) {
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1&countrycodes=nl`;
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(name)}&limit=1`;
     const res = await fetch(url, { headers: { 'Accept-Language': 'nl' } });
     const data = await res.json();
-    if (data && data.length > 0) {
-      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-    }
+    if (data && data.length > 0) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   } catch(e) {}
   return null;
 }
@@ -1486,7 +1499,7 @@ async function geocodeAddress(address) {
 function updateMapMarkers() {
   if (!leafletMap) return;
   mapMarkers.forEach(m => m.remove()); mapMarkers = [];
-  const withCoords = adventures.filter(a => a.lat && a.lng && a.address);
+  const withCoords = adventures.filter(a => a.lat && a.lng);
   if (withCoords.length === 0) {
     document.getElementById('mapView').innerHTML = `
       <div style="padding:40px 20px;text-align:center">
@@ -1704,7 +1717,6 @@ function openAddModal() {
   document.getElementById('newTime').value = '';
   document.getElementById('newDesc').value = '';
   document.getElementById('newMaps').value = '';
-  document.getElementById('newAddress').value = '';
   document.getElementById('newTransport').value = '🚶';
   document.getElementById('photoPreview').style.backgroundImage = '';
   document.getElementById('photoUploadLabel').textContent = 'tik om foto te kiezen';
@@ -1725,7 +1737,6 @@ function openEditModal(id) {
   document.getElementById('newTime').value = a.time || '';
   document.getElementById('newDesc').value = a.description || '';
   document.getElementById('newMaps').value = a.mapsLink || '';
-  document.getElementById('newAddress').value = a.address || '';
   document.getElementById('newTransport').value = a.transport || '🚗';
   // photo preview
   if (a.photo) {
@@ -1762,7 +1773,6 @@ async function saveAdventure() {
   const transport = document.getElementById('newTransport').value;
   const description = document.getElementById('newDesc').value.trim();
   const mapsLink = document.getElementById('newMaps').value.trim();
-  const address = document.getElementById('newAddress').value.trim();
   const weathers = [...document.querySelectorAll('#newWeatherPicker .pill.on')].map(b => b.dataset.v);
   const types    = [...document.querySelectorAll('#newTypePicker .pill.on')].map(b => b.dataset.v);
 
@@ -1772,28 +1782,25 @@ async function saveAdventure() {
   btn.textContent = 'bezig…';
   btn.disabled = true;
 
-  // geocode address if provided
+  // extract coordinates from Maps link
   let lat = null, lng = null;
-  if (address) {
-    const coords = await geocodeAddress(address);
+  if (mapsLink) {
+    const coords = await coordsFromMapsLink(mapsLink);
     if (coords) { lat = coords.lat; lng = coords.lng; }
   }
 
   if (editingId !== null) {
-    // update existing
     const a = adventures.find(x => x.id === editingId);
     if (a) {
       a.name = name; a.time = time; a.transport = transport;
       a.description = description; a.mapsLink = mapsLink;
-      a.address = address; a.weather = weathers; a.types = types;
-      a.free = newIsFree;
+      a.weather = weathers; a.types = types; a.free = newIsFree;
       if (pendingPhotoData) a.photo = pendingPhotoData;
-      if (address) { a.lat = lat; a.lng = lng; }
+      if (mapsLink) { a.lat = lat; a.lng = lng; }
     }
   } else {
-    // new adventure
     const photo = pendingPhotoData || null;
-    adventures.push({ id:nextId++, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, address, lat, lng, notes:'', fav:false, photo });
+    adventures.push({ id:nextId++, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat, lng, notes:'', fav:false, photo });
   }
   save();
 
