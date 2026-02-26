@@ -1203,7 +1203,7 @@
 // ═══════════════════════════════════════════════
 //  DATA
 // ═══════════════════════════════════════════════
-let adventures = JSON.parse(localStorage.getItem('saar_adventures') || 'null') || [
+let adventures = [
   { id:1,  name:"Bussloo",                           photo:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&q=80", time:0,  transport:"🚴", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Op de fiets of wandelen. Eten en drinken bij Withagen of De Enk.",                              mapsLink:"https://maps.google.com/?q=Bussloo+Brummen",                      lat:52.098, lng:6.182, notes:"", fav:false },
   { id:2,  name:"Landgoed De Poll",                  photo:"https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=600&q=80", time:0,  transport:"🚶", weather:["sun","cloud","wind"], types:["buiten"],          free:true,  description:"Wandelen door het bos en langs de IJssel. Eten bij De Kribbe of bakkerij Breil.",               mapsLink:"https://maps.google.com/?q=Landgoed+De+Poll+Velp",                lat:52.005, lng:6.044, notes:"", fav:false },
   { id:3,  name:"Speeltuin Posterenk",               photo:"https://images.unsplash.com/photo-1575783970733-1aaedde1db74?w=600&q=80", time:6,  transport:"🚴", weather:["sun","cloud"],        types:["buiten","sport"],  free:true,  description:"Gezellige speeltuin op fietsafstand.",                                                          mapsLink:"https://maps.google.com/?q=Speeltuin+Posterenk",                  lat:52.015, lng:6.068, notes:"", fav:false },
@@ -1222,7 +1222,7 @@ let adventures = JSON.parse(localStorage.getItem('saar_adventures') || 'null') |
   { id:16, name:"Sallandse Heuvelrug",               photo:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=600&q=80", time:35, transport:"🚗", weather:["sun","cloud","wind"], types:["buiten","sport"],  free:true,  description:"Wandelen door het bos met speeltoestellen langs de route.",                                     mapsLink:"https://maps.google.com/?q=Sallandse+Heuvelrug+Nijverdal",        lat:52.371, lng:6.459, notes:"", fav:false },
 ];
 
-let nextId = Math.max(...adventures.map(a => a.id)) + 1;
+let nextId = 17; // wordt overschreven bij laden uit Supabase
 
 // ── STATE ──
 let currentTab       = 'home';
@@ -1241,7 +1241,83 @@ const photoBg     = a => a.photo
 const weatherIcon = { sun:'☀', cloud:'⛅', rain:'☂', wind:'💨', snow:'❄' };
 const typeLabel   = { buiten:'buiten', binnen:'binnen', water:'water', dieren:'dieren', sport:'sport' };
 
-function save() { localStorage.setItem('saar_adventures', JSON.stringify(adventures)); }
+// ═══════════════════════════════════════════════
+//  SUPABASE
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'https://eozwmfwofqnmewxfhtdw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvendtZndvZnFubWV3eGZodGR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjY5NDUsImV4cCI6MjA4NzcwMjk0NX0.px6vmbCDw-9iM1g7UxnuV1qNjvvfv0KzcoxCHASo3V0';
+const SB_HEADERS = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+function toRow(a) {
+  return {
+    id: a.id, name: a.name, photo: a.photo || null,
+    time: a.time, transport: a.transport,
+    weather: a.weather, types: a.types,
+    free: a.free, description: a.description || '',
+    maps_link: a.mapsLink || null,
+    lat: a.lat || null, lng: a.lng || null,
+    notes: a.notes || '', fav: a.fav
+  };
+}
+
+function fromRow(r) {
+  return {
+    id: r.id, name: r.name, photo: r.photo || null,
+    time: r.time, transport: r.transport,
+    weather: r.weather || [], types: r.types || [],
+    free: r.free, description: r.description || '',
+    mapsLink: r.maps_link || null,
+    lat: r.lat || null, lng: r.lng || null,
+    notes: r.notes || '', fav: r.fav
+  };
+}
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: SB_HEADERS, ...options
+  });
+  if (!res.ok) { const err = await res.text(); throw new Error(err); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function loadFromSupabase() {
+  const rows = await sbFetch('adventures?select=*&order=id');
+  if (rows && rows.length > 0) {
+    adventures = rows.map(fromRow);
+    nextId = Math.max(...adventures.map(a => a.id)) + 1;
+  } else {
+    // eerste keer: laad standaard data en upload naar Supabase
+    await seedSupabase();
+  }
+}
+
+async function seedSupabase() {
+  for (const a of adventures) {
+    await sbFetch('adventures', {
+      method: 'POST',
+      body: JSON.stringify(toRow(a))
+    });
+  }
+}
+
+async function save(adventure) {
+  await sbFetch(`adventures?id=eq.${adventure.id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(toRow(adventure))
+  });
+}
+
+async function insertAdventure(adventure) {
+  await sbFetch('adventures', {
+    method: 'POST',
+    body: JSON.stringify(toRow(adventure))
+  });
+}
+
+async function deleteFromSupabase(id) {
+  await sbFetch(`adventures?id=eq.${id}`, { method: 'DELETE' });
+}
 
 // ═══════════════════════════════════════════════
 //  FILTER HELPERS
@@ -1599,21 +1675,26 @@ function closeDetail() {
   else if (currentTab === 'fav') renderListView(adventures.filter(a => a.fav));
 }
 
-function saveNotes(id) {
+async function saveNotes(id) {
   const a = adventures.find(x => x.id === id); if (!a) return;
-  a.notes = document.getElementById('notesField').value; save();
-  const btn = event.target; btn.textContent = '✓ opgeslagen';
+  a.notes = document.getElementById('notesField').value;
+  const btn = event.target; btn.textContent = '…';
+  await save(a);
+  btn.textContent = '✓ opgeslagen';
   setTimeout(() => btn.textContent = 'opslaan', 1500);
 }
 
-function deleteAdventure(id) {
+async function deleteAdventure(id) {
   if (!confirm('Uitje verwijderen?')) return;
-  adventures = adventures.filter(a => a.id !== id); save(); closeDetail();
+  await deleteFromSupabase(id);
+  adventures = adventures.filter(a => a.id !== id);
+  closeDetail();
 }
 
-function toggleFav(id) {
+async function toggleFav(id) {
   const a = adventures.find(x => x.id === id); if (!a) return;
-  a.fav = !a.fav; save();
+  a.fav = !a.fav;
+  await save(a);
   if (currentTab === 'home') renderHome();
   else if (currentTab === 'fav') renderListView(adventures.filter(a => a.fav));
   else if (searchQuery) renderListView(getFiltered());
@@ -1797,12 +1878,14 @@ async function saveAdventure() {
       a.weather = weathers; a.types = types; a.free = newIsFree;
       if (pendingPhotoData) a.photo = pendingPhotoData;
       if (mapsLink) { a.lat = lat; a.lng = lng; }
+      await save(a);
     }
   } else {
     const photo = pendingPhotoData || null;
-    adventures.push({ id:nextId++, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat, lng, notes:'', fav:false, photo });
+    const newA = { id:nextId++, name, time, transport, weather:weathers, types, free:newIsFree, description, mapsLink, lat, lng, notes:'', fav:false, photo };
+    adventures.push(newA);
+    await insertAdventure(newA);
   }
-  save();
 
   btn.textContent = editingId !== null ? 'wijzigingen opslaan' : 'uitje opslaan';
   btn.disabled = false;
@@ -1820,7 +1903,23 @@ function handleOverlay(e, id) { if (e.target.id === id) closeModal(id); }
 // ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
-renderHome();
+async function init() {
+  // toon laadscherm
+  document.getElementById('homeView').innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">— laden —</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;font-style:italic;color:var(--ink)">Uitjes ophalen…</div>
+    </div>`;
+  try {
+    await loadFromSupabase();
+  } catch(e) {
+    console.error('Supabase fout:', e);
+    // fallback naar lokale data
+  }
+  renderHome();
+}
+
+init();
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
 </body>
