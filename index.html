@@ -1850,21 +1850,28 @@ function handlePhotoUpload(event) {
 }
 
 async function uploadPhoto(file, id) {
-  const ext = file.name.split('.').pop() || 'jpg';
-  const path = `adventure-${id}.${ext}`;
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/photos/${path}`, {
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `adventure-${id}-${Date.now()}.${ext}`;
+
+  // Gebruik FormData voor betere compatibiliteit
+  const formData = new FormData();
+  formData.append('', file);
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/Photos/${path}`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': file.type,
       'x-upsert': 'true'
     },
     body: file
   });
-  if (!res.ok) { const e = await res.text(); throw new Error(e); }
-  // voeg cache-busting toe zodat nieuwe foto meteen zichtbaar is
-  return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}?t=${Date.now()}`;
+
+  const responseText = await res.text();
+  console.log('Upload response:', res.status, responseText);
+
+  if (!res.ok) throw new Error(`Upload mislukt: ${res.status} ${responseText}`);
+  return `${SUPABASE_URL}/storage/v1/object/public/Photos/${path}`;
 }
 
 async function saveAdventure() {
@@ -1881,6 +1888,8 @@ async function saveAdventure() {
   const btn = document.getElementById('addSaveBtn');
   btn.textContent = 'bezig…';
   btn.disabled = true;
+
+  try {
 
   // extract coordinates from Maps link
   let lat = null, lng = null;
@@ -1912,6 +1921,13 @@ async function saveAdventure() {
   btn.disabled = false;
   closeModal('addModal');
   switchTab('home');
+
+  } catch(err) {
+    console.error('Opslaan mislukt:', err);
+    alert('Fout bij opslaan: ' + err.message);
+    btn.textContent = editingId !== null ? 'wijzigingen opslaan' : 'uitje opslaan';
+    btn.disabled = false;
+  }
 }
 
 // ═══════════════════════════════════════════════
