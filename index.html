@@ -269,33 +269,27 @@
        HORIZONTAL CARD RAIL
     ───────────────────────────────*/
     .card-rail {
-      display: flex;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
       padding: 0 20px 4px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-      scroll-snap-type: x mandatory;
     }
-    .card-rail::-webkit-scrollbar { display: none; }
 
     .rail-card {
-      flex-shrink: 0;
-      width: 150px;
       cursor: pointer;
-      scroll-snap-align: start;
       -webkit-tap-highlight-color: transparent;
       transition: opacity 0.15s;
+      min-width: 0;
     }
     .rail-card:active { opacity: 0.8; }
 
     .rail-thumb {
-      width: 150px;
-      height: 200px;
+      width: 100%;
+      aspect-ratio: 2/3;
       position: relative;
       overflow: hidden;
       background-color: var(--cream2);
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
     .rail-thumb-img {
       position: absolute;
@@ -333,12 +327,12 @@
 
     .rail-card-name {
       font-family: 'Playfair Display', Georgia, serif;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--ink);
       letter-spacing: -0.01em;
       line-height: 1.25;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
