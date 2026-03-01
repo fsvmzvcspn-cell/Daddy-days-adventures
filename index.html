@@ -1361,61 +1361,7 @@ function renderHome() {
   const featured = favs.length ? favs[Math.floor(Math.random()*favs.length)] : filtered[0];
   html += heroCardHTML(featured);
 
-  // SECTION: Snel weg (≤15 min)
-  const nearby = filtered.filter(a => a.time <= 15);
-  if (nearby.length) {
-    html += `<hr class="divider">
-    <div class="section-head">
-      <div class="section-head-title">Snel weg</div>
-      <div class="section-head-sub">≤ 15 min</div>
-    </div>
-    <div class="card-rail">` + nearby.map(a => railCardHTML(a)).join('') + `</div>`;
-  }
-
-  // SECTION: Favorieten
-  if (favs.length) {
-    html += `<hr class="divider">
-    <div class="section-head">
-      <div class="section-head-title">Favorieten</div>
-      <div class="section-head-sub">${favs.length} bewaard</div>
-    </div>
-    <div class="card-rail">` + favs.map(a => railCardHTML(a)).join('') + `</div>`;
-  }
-
-  // SECTION: Buiten
-  const buiten = filtered.filter(a => a.types.includes('buiten'));
-  if (buiten.length) {
-    html += `<hr class="divider">
-    <div class="section-head">
-      <div class="section-head-title">Buiten</div>
-      <div class="section-head-sub">natuur & bos</div>
-    </div>
-    <div class="card-rail">` + buiten.map(a => railCardHTML(a)).join('') + `</div>`;
-  }
-
-  // SECTION: Water
-  const water = filtered.filter(a => a.types.includes('water'));
-  if (water.length) {
-    html += `<hr class="divider">
-    <div class="section-head">
-      <div class="section-head-title">Water</div>
-      <div class="section-head-sub">zwemmen & spetteren</div>
-    </div>
-    <div class="card-rail">` + water.map(a => railCardHTML(a)).join('') + `</div>`;
-  }
-
-  // SECTION: Dieren
-  const dieren = filtered.filter(a => a.types.includes('dieren'));
-  if (dieren.length) {
-    html += `<hr class="divider">
-    <div class="section-head">
-      <div class="section-head-title">Dieren</div>
-      <div class="section-head-sub">boerderij & zoo</div>
-    </div>
-    <div class="card-rail">` + dieren.map(a => railCardHTML(a)).join('') + `</div>`;
-  }
-
-  // SECTION: Alle uitjes
+  // ALLE UITJES
   const sorted = [...filtered].sort((a,b) => a.time - b.time);
   html += `<hr class="divider">
   <div class="section-head">
